@@ -1,0 +1,1 @@
+Building the chrome extension for automatically closing inactive tabs.
