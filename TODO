@@ -1,3 +1,5 @@
 Add a toast to chrome to show that tabs are closing.
 Add ability to click on notification that leads to the tab.
 Add a progress bar.
+Notification should not be triggered in the google chrome helper but in google chrome itself
+Add functionality for when the tabs are greater than 4 to close the least used in the list

@@ -33,45 +33,66 @@ chrome.tabs.onUpdated.addListener((tabId) => {
 function checkAndCloseInactiveTabs() {
     const presentTime = Date.now();
 
-    //Get all open tabs
+    // Get all open tabs
     chrome.tabs.query({}, (tabs) => {
-        tabs.forEach((tab) => {
-            // If the tab has been inactive for longer than the INACTIVITY_LIMIT, warn and close it
-            if (tabActivity[tab.id] && presentTime - tabActivity[tab.id] > INACTIVITY_LIMIT) {
-                warnAndCloseTab(tab);
+        if (tabs.length > 4) {  // Only proceed if more than 4 tabs are open
+            // Sort tabs by inactivity (oldest to newest)
+            const sortedTabs = tabs.sort((a, b) => (tabActivity[a.id] || 0) - (tabActivity[b.id] || 0));
+
+            // Check the least active tabs and close them if inactive
+            for (let i = 0; i < tabs.length - 4; i++) {  // Close extra tabs (above 4 tabs)
+                const tab = sortedTabs[i];
+                if (tabActivity[tab.id] && presentTime - tabActivity[tab.id] > INACTIVITY_LIMIT) {
+                    warnAndCloseTab(tab);
+                }
             }
-        });
+        }
     });
 }
 
 // Function to notify the user before closing the tab and then close it after 10 seconds
 function warnAndCloseTab(tab) {
     console.log("Warning triggered")
-    // Notify the user that the tab will be closed in 10 seconds
-    computerTabCloseNotifier()
-  // Set a timeout to close the tab after the WARNING_TIME
-  setTimeout(() => closeTab(tab), WARNING_TIME);
+    // Show toast message in Chrome with tab title
+    showToastNotification(tab.title);
+
+    // Set a timeout to close the tab after the WARNING_TIME
+    setTimeout(() => closeTab(tab), WARNING_TIME);
+}
+
+// Function to display a toast notification with the tab title
+function showToastNotification(tabTitle) {
+    const message = `The tab "${tabTitle}" will close in 10 seconds.`;
+    const notificationOptions = {
+        type: 'basic',
+        iconUrl: 'icons/icon48.png',
+        title: 'Tab Closing Soon',
+        message: message,
+        requireInteraction: true  // Keeps the notification on the screen
+    };
+
+    chrome.notifications.create(notificationOptions);
 }
 
 // Function to close a tab and save its details to local storage
 function closeTab(tab) {
     console.log("Close tab triggered")
-  chrome.storage.local.get({ closedTabs: [] }, (result) => {
-    const closedTabs = result.closedTabs;
-    
-    // Add the closed tab's title, URL, and the time it was closed
-    closedTabs.push({
-      title: tab.title,
-      url: tab.url,
-      timeClosed: new Date().getTime()
+    chrome.storage.local.get({ closedTabs: [] }, (result) => {
+        const closedTabs = result.closedTabs;
+        
+        // Add the closed tab's title, URL, and the time it was closed
+        closedTabs.push({
+            title: tab.title,
+            url: tab.url,
+            timeClosed: new Date().getTime()
+        });
+
+        // Save the updated closed tabs array to local storage
+        chrome.storage.local.set({ closedTabs });
     });
 
-    // Save the updated closed tabs array to local storage
-    chrome.storage.local.set({ closedTabs });
-  });
-
-  // Close the tab
-  chrome.tabs.remove(tab.id);
+    // Close the tab
+    chrome.tabs.remove(tab.id);
 }
 
 // Clean up old closed tabs (remove tabs older than 2 days)
@@ -95,15 +116,3 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         cleanUpOldClosedTabs();
     }
 });
-
-
-function computerTabCloseNotifier() {
-    chrome.notifications.create(
-        {
-        type: 'basic',
-        iconUrl: 'icons/icon48.png',
-        title: 'Tab Closing Soon',
-        message: `The will close in 10 seconds.`,
-        requireInteraction: true // Keeps the notification on the screen
-    });
-}
