@@ -123,6 +123,7 @@ function closeTab(tab) {
         closedTabs.push({
             title: tab.title,
             url: tab.url,
+            favIconUrl: tab.favIconUrl,
             timeClosed: Date.now()
         });
 

@@ -7,6 +7,22 @@
     <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body class="popup-body">
+    <div class="tabs-container">
+        <!-- Each tab will have an icon, title, and additional info -->
+        <div class="tab-card">
+            <img src="favicon1.png" alt="Tab Icon" class="tab-icon">
+            <span class="tab-title">Tab 1 Title</span>
+            <span class="tab-info">Time: 2m left</span>
+        </div>
+    
+        <div class="tab-card">
+            <img src="favicon2.png" alt="Tab Icon" class="tab-icon">
+            <span class="tab-title">Tab 2 Title</span>
+            <span class="tab-info">Closed: 5m ago</span>
+        </div>
+    
+        <!-- More tab items can be added dynamically -->
+    </div>
     <div>
         <label for="inactivityLimit">Inactivity Limit (seconds):</label>
         <input type="number" id="inactivityLimit">

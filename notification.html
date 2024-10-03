@@ -99,6 +99,27 @@
             <i class="fa-solid fa-xmark"></i>
         </div>
     </div>
+    <script>
+        let notifications = document.querySelector('.notifications')
+        function createNewToast() {
+            let newToast = document.createElement('div')
+            newToast.innerHTML = `
+                <div class="notifications">
+                    <div class="toast">
+                        <i class="fa-brands fa-chrome"></i>
+                        <div class="content">
+                            <div class="title">Inactive Tab</div>
+                            <span>Closing inactive tab</span>
+                        </div>
+                        <i class="fa-solid fa-xmark"></i>
+                    </div>
+                </div>`;
+            notifications.appendChild(newToast);
+            newToast.timeOut = setTimeout(
+                () => newToast.remove(), 10000
+            )
+        }
+    </script>
     <script src="popup.js"></script>
 </body>
 </html>

@@ -4,7 +4,7 @@
     font-family: 'Poppins', sans-serif;
     width: 250px;
     padding: 10px;
-    background-color: #1C1D22;
+    background-color: #121212;
 }
 
 h1 {
@@ -62,4 +62,69 @@ input[type="checkbox"] {
 
 label {
     color: white;
+}
+
+/* Navigation bar */
+.navbar {
+    display: flex;
+    justify-content: space-around;
+    background-color: #f1f1f1;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.nav-item {
+    background-color: #e0e0e0;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.nav-item.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.nav-item:hover {
+    background-color: #d6d6d6;
+}
+
+/* Tabs container */
+.tabs-container {
+    display: flex;
+    overflow-x: auto;
+    padding: 10px;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* Individual tab cards */
+.tab-card {
+    display: flex;
+    align-items: center;
+    background-color: #1C1D22;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+    flex-shrink: 0;
+}
+
+.tab-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+}
+
+.tab-title {
+    flex-grow: 1;
+    color: white;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.tab-info {
+    color: #888;
+    font-size: 0.85em;
 }

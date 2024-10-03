@@ -4,6 +4,27 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabList = document.getElementById('tabList');
     const closedTabList = document.getElementById('closedTabList');
 
+    // Function to truncate the title if it exceeds the specified length
+    function truncateTitle(title, maxLength) {
+        if (title.length > maxLength) {
+            return title.substring(0, maxLength) + '...'; // Truncate and add ellipsis
+        }
+        return title;
+    }
+
+    // Function to format the closed date and time
+    function formatClosedTime(timestamp) {
+        const date = new Date(timestamp);
+        
+        // Get the day of the week (e.g., "Tue")
+        const day = date.toLocaleDateString('en-US', { weekday: 'short' });
+
+        // Get the time (e.g., "10:30 PM")
+        const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+        return `Closed: ${day} at ${time}`;
+    }
+
     // Load user settings from storage
     chrome.storage.local.get(['userSettings'], (data) => {
         const { inactivityLimit, maxTabs } = data.userSettings;
@@ -15,9 +36,17 @@ document.addEventListener('DOMContentLoaded', function () {
     chrome.tabs.query({}, (tabs) => {
         tabs.forEach(tab => {
             const li = document.createElement('li');
+            li.classList.add('tab-card');
+            const maxTitleLength = 30; // Specify the maximum length for the title
+            const truncatedTitle = truncateTitle(tab.title, maxTitleLength);
+
+            // Use favIconUrl for the tab icon, with a fallback if it's not available
+            const iconUrl = tab.favIconUrl || 'icon/icon128.png'; // Replace with your default icon path
+
             li.innerHTML = `
                 <input type="checkbox" class="pin-checkbox" ${tab.pinned ? 'checked' : ''} data-tab-id="${tab.id}">
-                <span>${tab.title}</span>
+                <img src="${iconUrl}" alt="Tab Icon" class="tab-icon">
+                <span class="tab-title">${truncatedTitle}</span>
                 <span class="timer" data-tab-id="${tab.id}">10s</span>
             `;
             tabList.appendChild(li);
@@ -64,34 +93,19 @@ document.addEventListener('DOMContentLoaded', function () {
         // Display each closed tab in the sorted order
         sortedClosedTabs.forEach(tab => {
             const li = document.createElement('li');
+            li.classList.add('tab-card');
+            const maxTitleLength = 36; // Specify the maximum length for the title
+            const truncatedTitle = truncateTitle(tab.title, maxTitleLength);
+
+            // Use favIconUrl for the tab icon, with a fallback if it's not available
+            const iconUrl = tab.favIconUrl || 'icon/icon128.png'; // Replace with your default icon path
+            
             li.innerHTML = `
-                <a href="${tab.url}" target="_blank">${tab.title}</a>
-                <span>Closed at: ${new Date(tab.timeClosed).toLocaleString()}</span>
+                <img src="${iconUrl}" alt="Tab Icon" class="tab-icon">
+                <a href="${tab.url}" target="_blank" class="tab-title">${truncatedTitle}</a>
+                <span class="tab-info">${formatClosedTime(tab.timeClosed)}</span>
             `;
             closedTabList.appendChild(li);
         });
     });
 });
-
-
-
-// let notifications = document.querySelector('.notifications')
-
-// function createNewToast() {
-//     let newToast = document.createElement('div')
-//     newToast.innerHTML = `
-//         <div class="notifications">
-//             <div class="toast">
-//                 <i class="fa-brands fa-chrome"></i>
-//                 <div class="content">
-//                     <div class="title">Inactive Tab</div>
-//                     <span>Closing inactive tab</span>
-//                 </div>
-//                 <i class="fa-solid fa-xmark"></i>
-//             </div>
-//         </div>`;
-//     notifications.appendChild(newToast);
-//     newToast.timeOut = setTimeout(
-//         () => newToast.remove(), 10000
-//     )
-// }
