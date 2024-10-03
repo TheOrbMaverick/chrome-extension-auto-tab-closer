@@ -1,94 +1,135 @@
-// Constants: Define the time limit for inactivity and warning time before closure
-const INACTIVITY_LIMIT = 10000; // 10 seconds
-const WARNING_TIME = 10000; // 10 seconds
+// Store for settings like inactivity time limit and maximum open tabs
+let userSettings = {
+    inactivityLimit: 10000,  // default to 10 seconds
+    maxTabs: 4               // default to 4 tabs
+};
 
-// Store the last active timestamp
-let tabActivity = {}
+// Store the last active timestamp and pinned status
+let tabActivity = {};
+let pinnedTabs = {};
 
-// When the extension is installed
-chrome.runtime.onInstalled.addListener(() => {
-  // Set up the alarm Alarm to check inactive tabs every minute.
-  chrome.alarms.create('inactiveTabs', {periodInMinutes: 1});
-});
-
-// Event listener triggered when the alarm goes off (every minute)
-chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === 'inactiveTabs') {
-        // Call function to close inactive tabs
-        checkAndCloseInactiveTabs();
+// Event listener for messages from the popup
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'togglePin') {
+        const { tabId, isPinned } = message;
+        togglePin(tabId, isPinned);
     }
 });
 
-// Update tab activity when a tab becomes active (e.g., user clicks on a tab)
+// When the extension is installed or settings are updated
+chrome.runtime.onInstalled.addListener(() => {
+    console.log("Extension installed or updated");
+    
+    // Set up the alarm to check inactive tabs every minute.
+    chrome.alarms.create('inactiveTabs', { periodInMinutes: 1 });
+    chrome.storage.local.set({ userSettings });
+
+    // Set up the cleanup alarm for closed tabs older than 2 days
+    chrome.alarms.create('cleanUpClosedTabs', { periodInMinutes: 1440 }); // 1440 minutes = 24 hours
+});
+
+// Update tab activity when a tab becomes active
 chrome.tabs.onActivated.addListener((activeInfo) => {
+    console.log(`Tab activated: ${activeInfo.tabId}`);
     tabActivity[activeInfo.tabId] = Date.now();
 });
 
-// Update tab activity when a tab is updated (reloaded, URL changes, etc.)
+// Update tab activity when a tab is updated (reloaded, etc.)
 chrome.tabs.onUpdated.addListener((tabId) => {
-    tabActivity[tabId] = Date.now()
+    console.log(`Tab updated: ${tabId}`);
+    tabActivity[tabId] = Date.now();
 });
 
-// Function to check inactive tabs and close them if inactive for too long
+// Listener for alarms
+chrome.alarms.onAlarm.addListener((alarm) => {
+    console.log(`Alarm triggered: ${alarm.name}`);
+    
+    if (alarm.name === 'inactiveTabs') {
+        checkAndCloseInactiveTabs();
+    }
+    
+    if (alarm.name === 'cleanUpClosedTabs') {
+        cleanUpOldClosedTabs();
+    }
+});
+
+// Function to check inactive tabs and close them
 function checkAndCloseInactiveTabs() {
     const presentTime = Date.now();
 
-    // Get all open tabs
     chrome.tabs.query({}, (tabs) => {
-        if (tabs.length > 4) {  // Only proceed if more than 4 tabs are open
-            // Sort tabs by inactivity (oldest to newest)
-            const sortedTabs = tabs.sort((a, b) => (tabActivity[a.id] || 0) - (tabActivity[b.id] || 0));
+        chrome.storage.local.get(['userSettings'], (data) => {
+            const { inactivityLimit, maxTabs } = data.userSettings;
+            
+            console.log(`Checking tabs: ${tabs.length} open, max allowed: ${maxTabs}`);
+            
+            if (tabs.length > maxTabs) {  // Only proceed if more than maxTabs are open
+                // Filter out pinned tabs and sort by inactivity
+                const sortedTabs = tabs.filter(tab => !pinnedTabs[tab.id])
+                                       .sort((a, b) => (tabActivity[a.id] || 0) - (tabActivity[b.id] || 0));
+                
+                console.log("Sorted tabs by inactivity: ", sortedTabs.map(tab => tab.title));
 
-            // Check the least active tabs and close them if inactive
-            for (let i = 0; i < tabs.length - 4; i++) {  // Close extra tabs (above 4 tabs)
-                const tab = sortedTabs[i];
-                if (tabActivity[tab.id] && presentTime - tabActivity[tab.id] > INACTIVITY_LIMIT) {
-                    warnAndCloseTab(tab);
+                // Close extra tabs based on inactivity
+                for (let i = 0; i < tabs.length - maxTabs; i++) {
+                    const tab = sortedTabs[i];
+                    if (tabActivity[tab.id] && presentTime - tabActivity[tab.id] > inactivityLimit) {
+                        console.log(`Tab marked for closure: ${tab.title}`);
+                        warnAndCloseTab(tab);
+                    } else {
+                        console.log(`Tab is still active: ${tab.title}`);
+                    }
                 }
             }
-        }
+        });
     });
 }
 
-// Function to notify the user before closing the tab and then close it after 10 seconds
+// Function to notify and close a tab
 function warnAndCloseTab(tab) {
-    console.log("Warning triggered")
-    // Show toast message in Chrome with tab title
-    showToastNotification(tab.title);
+    console.log(`Warning tab: ${tab.title}`);
 
-    // Set a timeout to close the tab after the WARNING_TIME
-    setTimeout(() => closeTab(tab), WARNING_TIME);
+    // Show toast message in Chrome with tab title
+    showNotification(tab.title);
+
+    // Set a timeout to close the tab after the warning time
+    setTimeout(() => closeTab(tab), 10000); // Assuming WARNING_TIME is 10 seconds
 }
 
 // Function to display a toast notification with the tab title
-function showToastNotification(tabTitle) {
-    const message = `The tab "${tabTitle}" will close in 10 seconds.`;
+function showNotification(tabTitle) {
+    const message = `Tab will close in 10 seconds.`;
     const notificationOptions = {
         type: 'basic',
         iconUrl: 'icons/icon48.png',
-        title: 'Tab Closing Soon',
+        title: `${tabTitle} Closing Soon`,
         message: message,
-        requireInteraction: true  // Keeps the notification on the screen
+        requireInteraction: false  // Keeps the notification on the screen
     };
 
-    chrome.notifications.create(notificationOptions);
+    chrome.notifications.create(notificationOptions, () => {
+        console.log(`Notification created for: ${tabTitle}`);
+    });
 }
 
-// Function to close a tab and save its details to local storage
+// Function to close a tab and save its details
 function closeTab(tab) {
-    console.log("Close tab triggered")
+    console.log(`Closing tab: ${tab.title}`);
+    
     chrome.storage.local.get({ closedTabs: [] }, (result) => {
         const closedTabs = result.closedTabs;
         
-        // Add the closed tab's title, URL, and the time it was closed
+        // Add the closed tab's title, URL, and time closed
         closedTabs.push({
             title: tab.title,
             url: tab.url,
-            timeClosed: new Date().getTime()
+            timeClosed: Date.now()
         });
 
-        // Save the updated closed tabs array to local storage
-        chrome.storage.local.set({ closedTabs });
+        // Save the updated closed tabs array
+        chrome.storage.local.set({ closedTabs }, () => {
+            console.log(`Closed tab saved: ${tab.title}`);
+        });
     });
 
     // Close the tab
@@ -99,20 +140,19 @@ function closeTab(tab) {
 function cleanUpOldClosedTabs() {
     chrome.storage.local.get({ closedTabs: [] }, (result) => {
         const closedTabs = result.closedTabs;
-        const now = new Date().getTime();
+        const now = Date.now();
         
-        // Filter out tabs older than 2 days (2 * 24 * 60 * 60 * 1000 milliseconds)
+        // Filter out tabs older than 2 days
         const filteredTabs = closedTabs.filter(tab => now - tab.timeClosed < 2 * 24 * 60 * 60 * 1000);
         
-        // Update storage with the filtered tabs
-        chrome.storage.local.set({ closedTabs: filteredTabs });
+        chrome.storage.local.set({ closedTabs: filteredTabs }, () => {
+            console.log("Old closed tabs cleaned up");
+        });
     });
 }
 
-// Set an alarm to clean up closed tabs older than 2 days once a day
-chrome.alarms.create('cleanUpClosedTabs', { periodInMinutes: 1440 }); // 1440 minutes = 24 hours
-chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === 'cleanUpClosedTabs') {
-        cleanUpOldClosedTabs();
-    }
-});
+// Toggle pin status of a tab
+function togglePin(tabId, isPinned) {
+    console.log(`Toggle pin: Tab ID = ${tabId}, Pinned = ${isPinned}`);
+    pinnedTabs[tabId] = isPinned;
+}

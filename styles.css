@@ -1,11 +1,15 @@
-body {
-    font-family: Arial, sans-serif;
-    width: 200px;
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600&display=swap');
+
+.popup-body {
+    font-family: 'Poppins', sans-serif;
+    width: 250px;
     padding: 10px;
+    background-color: #1C1D22;
 }
 
 h1 {
     font-size: 18px;
+    color: white;
 }
 
 ul {
@@ -14,14 +18,48 @@ ul {
 }
 
 li {
-    margin: 5px 0;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
 }
 
-a {
+.tab-title {
+    flex-grow: 1;
+    margin-left: 10px;
+}
+
+.countdown {
+    margin-left: 10px;
+    color: #ffcc00;
+}
+
+input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+.closed-tab-item {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+.closed-tab-item a {
+    color: #ffcc00;
     text-decoration: none;
-    color: #0066cc;
+    word-wrap: break-word;
 }
 
-a:hover {
+.closed-tab-item a:hover {
     text-decoration: underline;
+}
+
+.time-closed {
+    font-size: 12px;
+    color: #cccccc;
+}
+
+label {
+    color: white;
 }
