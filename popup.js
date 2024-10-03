@@ -28,7 +28,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Load user settings from storage
     chrome.storage.local.get(['userSettings'], (data) => {
         const { inactivityLimit, maxTabs } = data.userSettings;
-        inactivityLimitInput.value = inactivityLimit / 1000;  // Convert ms to seconds
+
+        // Convert ms to minutes and round to avoid floating-point issues
+        inactivityLimitInput.value = Math.round(inactivityLimit / 60000);  
         maxTabsInput.value = maxTabs;
     });
 
@@ -40,8 +42,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const maxTitleLength = 30; // Specify the maximum length for the title
             const truncatedTitle = truncateTitle(tab.title, maxTitleLength);
 
-            // Use favIconUrl for the tab icon, with a fallback if it's not available
-            const iconUrl = tab.favIconUrl || 'icon/icon128.png'; // Replace with your default icon path
+            // Handle internal chrome pages or missing favIconUrl with a fallback icon
+            const isChromeInternal = tab.url.startsWith('chrome://') || !tab.favIconUrl;
+            const iconUrl = isChromeInternal ? 'icons/chromeIcon.webp' : tab.favIconUrl;
 
             li.innerHTML = `
                 <input type="checkbox" class="pin-checkbox" ${tab.pinned ? 'checked' : ''} data-tab-id="${tab.id}">
@@ -68,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Save user settings when they change
     inactivityLimitInput.addEventListener('input', () => {
-        const inactivityLimit = inactivityLimitInput.value * 1000;  // Convert seconds to ms
+        const inactivityLimit = inactivityLimitInput.value * 60000;  // Convert minutes to ms
         saveUserSettings({ inactivityLimit });
     });
     maxTabsInput.addEventListener('input', () => {
@@ -97,9 +100,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const maxTitleLength = 36; // Specify the maximum length for the title
             const truncatedTitle = truncateTitle(tab.title, maxTitleLength);
 
-            // Use favIconUrl for the tab icon, with a fallback if it's not available
-            const iconUrl = tab.favIconUrl || 'icon/icon128.png'; // Replace with your default icon path
-            
+            // Handle internal chrome pages or missing favIconUrl with a fallback icon
+            const isChromeInternal = tab.url.startsWith('chrome://') || !tab.favIconUrl;
+            const iconUrl = isChromeInternal ? 'icons/chromeIcon.webp' : tab.favIconUrl;
+
             li.innerHTML = `
                 <img src="${iconUrl}" alt="Tab Icon" class="tab-icon">
                 <a href="${tab.url}" target="_blank" class="tab-title">${truncatedTitle}</a>

@@ -1,6 +1,6 @@
 // Store for settings like inactivity time limit and maximum open tabs
 let userSettings = {
-    inactivityLimit: 10000,  // default to 10 seconds
+    inactivityLimit: 60000,  // default to 10 seconds
     maxTabs: 4               // default to 4 tabs
 };
 
@@ -58,26 +58,36 @@ function checkAndCloseInactiveTabs() {
     const presentTime = Date.now();
 
     chrome.tabs.query({}, (tabs) => {
-        chrome.storage.local.get(['userSettings'], (data) => {
+        chrome.storage.local.get(['userSettings', 'closedTabs'], (data) => {
             const { inactivityLimit, maxTabs } = data.userSettings;
-            
-            console.log(`Checking tabs: ${tabs.length} open, max allowed: ${maxTabs}`);
-            
-            if (tabs.length > maxTabs) {  // Only proceed if more than maxTabs are open
-                // Filter out pinned tabs and sort by inactivity
-                const sortedTabs = tabs.filter(tab => tab && !pinnedTabs[tab.id]) // Ensure valid tab and it's not pinned
-                                       .sort((a, b) => (tabActivity[a.id] || 0) - (tabActivity[b.id] || 0));
-                
-                console.log("Sorted tabs by inactivity: ", sortedTabs.map(tab => tab.title || 'Unknown Tab'));
+            const closedTabs = data.closedTabs || [];
+
+            if (tabs.length > maxTabs) {
+                const sortedTabs = tabs
+                    .filter(tab => !pinnedTabs[tab.id])
+                    .sort((a, b) => (tabActivity[a.id] || 0) - (tabActivity[b.id] || 0));
 
                 // Close extra tabs based on inactivity
                 for (let i = 0; i < tabs.length - maxTabs; i++) {
                     const tab = sortedTabs[i];
-                    if (tab && tabActivity[tab.id] && presentTime - tabActivity[tab.id] > inactivityLimit) { // Ensure tab is valid and active
-                        console.log(`Tab marked for closure: ${tab.title}`);
-                        warnAndCloseTab(tab);
-                    } else if (tab) {
-                        console.log(`Tab is still active: ${tab.title}`);
+                    if (tabActivity[tab.id] && presentTime - tabActivity[tab.id] > inactivityLimit) {
+                        
+                        // Save the tab details before closing
+                        closedTabs.push({
+                            id: tab.id,
+                            url: tab.url,
+                            title: tab.title,
+                            favIconUrl: tab.favIconUrl,
+                            timeClosed: Date.now()
+                        });
+
+                        // Update the closedTabs in storage
+                        chrome.storage.local.set({ closedTabs }, () => {
+                            console.log(`Tab saved to recently closed: ${tab.title}`);
+
+                            // Now close the tab
+                            chrome.tabs.remove(tab.id);
+                        });
                     }
                 }
             }
@@ -144,10 +154,10 @@ function cleanUpOldClosedTabs() {
         const now = Date.now();
         
         // Filter out tabs older than 2 days
-        const filteredTabs = closedTabs.filter(tab => now - tab.timeClosed < 2 * 24 * 60 * 60 * 1000);
+        const filteredTabs = closedTabs.filter(tab => now - tab.timeClosed < (48 * 60 * 60 * 1000));
         
         chrome.storage.local.set({ closedTabs: filteredTabs }, () => {
-            console.log("Old closed tabs cleaned up");
+            console.log(`Old closed and cleaned up`);
         });
     });
 }
