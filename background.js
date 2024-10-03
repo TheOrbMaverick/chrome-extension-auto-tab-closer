@@ -65,18 +65,18 @@ function checkAndCloseInactiveTabs() {
             
             if (tabs.length > maxTabs) {  // Only proceed if more than maxTabs are open
                 // Filter out pinned tabs and sort by inactivity
-                const sortedTabs = tabs.filter(tab => !pinnedTabs[tab.id])
+                const sortedTabs = tabs.filter(tab => tab && !pinnedTabs[tab.id]) // Ensure valid tab and it's not pinned
                                        .sort((a, b) => (tabActivity[a.id] || 0) - (tabActivity[b.id] || 0));
                 
-                console.log("Sorted tabs by inactivity: ", sortedTabs.map(tab => tab.title));
+                console.log("Sorted tabs by inactivity: ", sortedTabs.map(tab => tab.title || 'Unknown Tab'));
 
                 // Close extra tabs based on inactivity
                 for (let i = 0; i < tabs.length - maxTabs; i++) {
                     const tab = sortedTabs[i];
-                    if (tabActivity[tab.id] && presentTime - tabActivity[tab.id] > inactivityLimit) {
+                    if (tab && tabActivity[tab.id] && presentTime - tabActivity[tab.id] > inactivityLimit) { // Ensure tab is valid and active
                         console.log(`Tab marked for closure: ${tab.title}`);
                         warnAndCloseTab(tab);
-                    } else {
+                    } else if (tab) {
                         console.log(`Tab is still active: ${tab.title}`);
                     }
                 }
