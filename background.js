@@ -58,17 +58,18 @@ function checkAndCloseInactiveTabs() {
     const presentTime = Date.now();
 
     chrome.tabs.query({}, (tabs) => {
-        chrome.storage.local.get(['userSettings', 'closedTabs'], (data) => {
+        chrome.storage.local.get(['userSettings', 'closedTabs', 'pinnedTabs'], (data) => {
             const { inactivityLimit, maxTabs } = data.userSettings;
             const closedTabs = data.closedTabs || [];
+            const pinnedTabs = data.pinnedTabs || {}; // Load pinned tabs from storage
 
             if (tabs.length > maxTabs) {
                 const sortedTabs = tabs
-                    .filter(tab => !pinnedTabs[tab.id])
+                    .filter(tab => !pinnedTabs[tab.id] && !tab.active) // Filter out pinned tabs
                     .sort((a, b) => (tabActivity[a.id] || 0) - (tabActivity[b.id] || 0));
 
                 // Close extra tabs based on inactivity
-                for (let i = 0; i < tabs.length - maxTabs; i++) {
+                for (let i = 0; i < sortedTabs.length && i < (tabs.length - maxTabs); i++) {
                     const tab = sortedTabs[i];
                     if (tabActivity[tab.id] && presentTime - tabActivity[tab.id] > inactivityLimit) {
                         
@@ -94,6 +95,7 @@ function checkAndCloseInactiveTabs() {
         });
     });
 }
+
 
 // Function to notify and close a tab
 function warnAndCloseTab(tab) {
@@ -154,7 +156,7 @@ function cleanUpOldClosedTabs() {
         const now = Date.now();
         
         // Filter out tabs older than 2 days
-        const filteredTabs = closedTabs.filter(tab => now - tab.timeClosed < (48 * 60 * 60 * 1000));
+        const filteredTabs = closedTabs.filter(tab => now - tab.timeClosed < (60 * 1000));
         
         chrome.storage.local.set({ closedTabs: filteredTabs }, () => {
             console.log(`Old closed and cleaned up`);
