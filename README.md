@@ -1,7 +1,7 @@
 
 # Automatic Tab Closer for Chrome
 
-This Chrome extension helps manage too many open tabs by automatically closing inactive ones based on user preferences. It is designed to reduce clutter while ensuring that important tabs stay open.
+This Chrome extension helps manage too many open tabs by automatically closing inactive ones based on user preferences. It is designed to reduce clutter while ensuring that important tabs stay open. It checks every 12 seconds for tab activity or inactivity and starts a countdown if necessary.
 
 ## Features
 
