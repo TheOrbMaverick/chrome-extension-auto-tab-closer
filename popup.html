@@ -3,27 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tab Manager</title>
+    <title data-i18n="appTitle"></title>
     <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body class="popup-body">
-    <h1>Auto Tab Closer</h1>
+    <h1 data-i18n="appHeader"></h1>
     <div>
-        <label for="inactivityLimit">Close Tabs after (minutes):</label>
+        <label for="inactivityLimit" data-i18n="inactivityLimitLabel"></label>
         <input type="number" id="inactivityLimit" min="1">
     </div>
     <div>
-        <label for="maxTabs">Max Tabs:</label>
+        <label for="maxTabs" data-i18n="maxTabsLabel"></label>
         <input type="number" id="maxTabs" min="1">
     </div>
 
-    <h1>Open Tabs</h1>
-    <p>Pin Tab</p>
+    <h1 data-i18n="openTabsHeader"></h1>
+    <p data-i18n="pinTabText"></p>
     <ul id="tabList"></ul>
 
-    <h1>Recently Closed Tabs</h1>
+    <h1 data-i18n="recentlyClosedHeader"></h1>
     <ul id="closedTabList"></ul>
 
     <script src="popup.js"></script>
 </body>
 </html>
+

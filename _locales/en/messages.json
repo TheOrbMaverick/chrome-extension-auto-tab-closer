@@ -1,0 +1,23 @@
+{
+    "appTitle": {
+        "message": "Tab Manager"
+    },
+    "appHeader": {
+        "message": "Auto Tab Closer"
+    },
+    "inactivityLimitLabel": {
+        "message": "Close Tabs after (minutes):"
+    },
+    "maxTabsLabel": {
+        "message": "Max Tabs:"
+    },
+    "openTabsHeader": {
+        "message": "Open Tabs"
+    },
+    "pinTabText": {
+        "message": "Pin Tab"
+    },
+    "recentlyClosedHeader": {
+        "message": "Recently Closed Tabs"
+    }
+}

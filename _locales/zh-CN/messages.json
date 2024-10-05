@@ -1,0 +1,23 @@
+{
+    "appTitle": {
+        "message": "标签管理器"
+    },
+    "appHeader": {
+        "message": "自动标签关闭器"
+    },
+    "inactivityLimitLabel": {
+        "message": "多少分钟后关闭标签："
+    },
+    "maxTabsLabel": {
+        "message": "最大标签数："
+    },
+    "openTabsHeader": {
+        "message": "打开的标签"
+    },
+    "pinTabText": {
+        "message": "固定标签"
+    },
+    "recentlyClosedHeader": {
+        "message": "最近关闭的标签"
+    }
+}

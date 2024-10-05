@@ -1,0 +1,24 @@
+{
+    "appTitle": {
+      "message": "Gestor de Pestañas"
+    },
+    "appHeader": {
+      "message": "Cerrador Automático de Pestañas"
+    },
+    "inactivityLimitLabel": {
+      "message": "Cerrar pestañas después de (minutos):"
+    },
+    "maxTabsLabel": {
+      "message": "Máximo de Pestañas:"
+    },
+    "openTabsHeader": {
+      "message": "Pestañas Abiertas"
+    },
+    "pinTabText": {
+      "message": "Fijar Pestaña"
+    },
+    "recentlyClosedHeader": {
+      "message": "Pestañas Cerradas Recientemente"
+    }
+}
+  

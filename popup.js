@@ -4,6 +4,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabList = document.getElementById('tabList');
     const closedTabList = document.getElementById('closedTabList');
 
+    // Function to set localized text
+    function setLocalizedText() {
+        document.querySelectorAll('[data-i18n]').forEach(element => {
+            const messageKey = element.getAttribute('data-i18n');
+            element.innerText = chrome.i18n.getMessage(messageKey);
+        });
+    }
+
+    setLocalizedText();
+
+    
     // Function to truncate the title if it exceeds the specified length
     function truncateTitle(title, maxLength) {
         return title.length > maxLength ? title.substring(0, maxLength) + '...' : title;
