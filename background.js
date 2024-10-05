@@ -1,6 +1,6 @@
 // Store for settings like inactivity time limit and maximum open tabs
 let userSettings = {
-    inactivityLimit: 60000,  // default to 10 seconds
+    inactivityLimit: 2700000,  // default to 45 minutes
     maxTabs: 4               // default to 4 tabs
 };
 
@@ -26,7 +26,7 @@ chrome.runtime.onInstalled.addListener(() => {
     console.log("Extension installed or updated");
     
     // Set up the alarm to check inactive tabs every minute.
-    chrome.alarms.create('inactiveTabs', { periodInMinutes: 1 });
+    chrome.alarms.create('inactiveTabs', { periodInMinutes: 0.2 });
     chrome.storage.local.set({ userSettings });
 
     // Set up the cleanup alarm for closed tabs older than 2 days

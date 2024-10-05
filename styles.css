@@ -8,6 +8,7 @@
 }
 
 h1 {
+    padding-top: 20px;
     font-size: 18px;
     color: white;
 }
@@ -15,6 +16,10 @@ h1 {
 ul {
     list-style-type: none;
     padding: 0;
+}
+
+p {
+    color: white;
 }
 
 li {

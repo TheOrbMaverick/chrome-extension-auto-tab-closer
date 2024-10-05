@@ -1,10 +1,1 @@
-Add a toast to chrome to show that tabs are closing.
-Add ability to click on notification that leads to the tab.
-Add a progress bar.
-Notification should not be triggered in the google chrome helper but in google chrome itself
-
-Active tabs shoul have a countdown
-internationalization
-When "New tab" is clicked it shouldn't give an error.
-if the tabs are already open and the extension is activated it should still work
-It should work even for tabs that were open before it was run
+Add some sort of payment or subscription for monthly income
