@@ -85,6 +85,11 @@ function checkAndCloseInactiveTabs() {
                                 closeTab(tab);  // Now close the tab
                             });
                         } else {
+                            // If the tab has no existing timer, set the full inactivityLimit again
+                            if (!tabTimers[tab.id]) {
+                                tabTimers[tab.id] = inactivityLimit;
+                            }
+
                             // Update the timer for the tab
                             tabTimers[tab.id] = remainingTime;
 
