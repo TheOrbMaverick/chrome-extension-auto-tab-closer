@@ -16,15 +16,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         togglePin(tabId, isPinned);
     } else if (message.action === 'getTabTimers') {
         // Send tab timers back to popup.js
-        console.log('Sending tab timers to popup.js:', tabTimers);
         sendResponse(tabTimers);
     }
 });
 
 // When the extension is installed or settings are updated
 chrome.runtime.onInstalled.addListener(() => {
-    console.log("Extension installed or updated");
-    
     // Set up the alarm to check inactive tabs every minute.
     chrome.alarms.create('inactiveTabs', { periodInMinutes: 0.2 });
     chrome.storage.local.set({ userSettings });
@@ -35,24 +32,20 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Update tab activity when a tab becomes active
 chrome.tabs.onActivated.addListener((activeInfo) => {
-    console.log(`Tab activated: ${activeInfo.tabId}`);
     tabActivity[activeInfo.tabId] = Date.now();
 
     // Reset the countdown for the active tab
     delete tabTimers[activeInfo.tabId];
     chrome.storage.local.set({ tabTimers });
-    console.log('Timer reset for active tab:', activeInfo.tabId);
 });
 
 // Update tab activity when a tab is updated (reloaded, etc.)
 chrome.tabs.onUpdated.addListener((tabId) => {
-    console.log(`Tab updated: ${tabId}`);
     tabActivity[tabId] = Date.now();
 });
 
 // Listener for alarms
 chrome.alarms.onAlarm.addListener((alarm) => {
-    console.log(`Alarm triggered: ${alarm.name}`);
     
     if (alarm.name === 'inactiveTabs') {
         checkAndCloseInactiveTabs();
@@ -85,9 +78,6 @@ function checkAndCloseInactiveTabs() {
                         const timeSinceLastActivity = presentTime - tabActivity[tab.id];
                         const remainingTime = inactivityLimit - timeSinceLastActivity;
 
-                        // Log the remaining time for the tab in the console
-                        console.log(`Tab ID: ${tab.id}, Remaining Time: ${remainingTime} ms`);
-
                         if (remainingTime <= 0) {
                             // Save the tab details before closing
                             closedTabs.push({
@@ -100,15 +90,11 @@ function checkAndCloseInactiveTabs() {
 
                             // Update the closedTabs in storage
                             chrome.storage.local.set({ closedTabs }, () => {
-                                console.log(`Tab saved to recently closed: ${tab.title}`);
                                 closeTab(tab);  // Now close the tab
                             });
                         } else {
                             // Update the timer for the tab
                             tabTimers[tab.id] = remainingTime;
-
-                            // Log the timers object to see all tab timers
-                            console.log('Updated tab timers:', tabTimers);
 
                             // Store the updated timers in chrome.storage
                             chrome.storage.local.set({ tabTimers });
@@ -129,8 +115,6 @@ function checkAndCloseInactiveTabs() {
 
 // Function to notify and close a tab
 function warnAndCloseTab(tab) {
-    console.log(`Warning tab: ${tab.title}`);
-
     // Show toast message in Chrome with tab title
     showNotification(tab.title);
 
@@ -150,14 +134,11 @@ function showNotification(tabTitle) {
     };
 
     chrome.notifications.create(notificationOptions, () => {
-        console.log(`Notification created for: ${tabTitle}`);
     });
 }
 
 // Function to close a tab and save its details
 function closeTab(tab) {
-    console.log(`Closing tab: ${tab.title}`);
-    
     chrome.storage.local.get({ closedTabs: [] }, (result) => {
         const closedTabs = result.closedTabs;
         
@@ -171,7 +152,6 @@ function closeTab(tab) {
 
         // Save the updated closed tabs array
         chrome.storage.local.set({ closedTabs }, () => {
-            console.log(`Closed tab saved: ${tab.title}`);
         });
     });
 
@@ -189,13 +169,11 @@ function cleanUpOldClosedTabs() {
         const filteredTabs = closedTabs.filter(tab => now - tab.timeClosed < (60 * 1000));
         
         chrome.storage.local.set({ closedTabs: filteredTabs }, () => {
-            console.log(`Old closed and cleaned up`);
         });
     });
 }
 
 // Toggle pin status of a tab
 function togglePin(tabId, isPinned) {
-    console.log(`Toggle pin: Tab ID = ${tabId}, Pinned = ${isPinned}`);
     pinnedTabs[tabId] = isPinned;
 }

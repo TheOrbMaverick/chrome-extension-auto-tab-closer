@@ -54,7 +54,6 @@ document.addEventListener('DOMContentLoaded', function () {
             chrome.storage.local.get(['tabTimers', 'pinnedTabs'], (data) => {
                 const pinnedTabs = data.pinnedTabs || {};
                 const tabTimers = data.tabTimers || {};
-                console.log('These are the tabTimers from storage:', tabTimers);
 
                 tabList.innerHTML = '';  // Clear the tab list
 
@@ -117,7 +116,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             pinnedTabs[tabId] = isPinned;
 
                             chrome.storage.local.set({ pinnedTabs }, () => {
-                                console.log(`Tab ${tabId} pinned state updated: ${isPinned}`);
                             });
                         });
                     });
