@@ -79,14 +79,6 @@ function checkAndCloseInactiveTabs() {
                         const remainingTime = inactivityLimit - timeSinceLastActivity;
 
                         if (remainingTime <= 0) {
-                            // Save the tab details before closing
-                            closedTabs.push({
-                                id: tab.id,
-                                url: tab.url,
-                                title: tab.title,
-                                favIconUrl: tab.favIconUrl,
-                                timeClosed: Date.now()
-                            });
 
                             // Update the closedTabs in storage
                             chrome.storage.local.set({ closedTabs }, () => {
