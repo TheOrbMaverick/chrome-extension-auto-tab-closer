@@ -14,6 +14,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setLocalizedText();
 
+    // Listen for messages from background.js to update popup
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.action === 'updatePopup') {
+            updateTabsWithTimers();  // Call your UI update function
+        }
+    });
     
     // Function to truncate the title if it exceeds the specified length
     function truncateTitle(title, maxLength) {
@@ -116,6 +122,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             pinnedTabs[tabId] = isPinned;
 
                             chrome.storage.local.set({ pinnedTabs }, () => {
+
+                                // Send a message to background.js to handle the pinning logic and update UI
+                                chrome.runtime.sendMessage({ action: 'togglePin', tabId, isPinned });
                             });
                         });
                     });

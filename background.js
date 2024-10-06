@@ -173,4 +173,9 @@ function cleanUpOldClosedTabs() {
 // Toggle pin status of a tab
 function togglePin(tabId, isPinned) {
     pinnedTabs[tabId] = isPinned;
+    chrome.storage.local.set({ pinnedTabs }, () => {
+        console.log(`Tab ${tabId} pin status updated to: ${isPinned}`);
+        // Send a message to popup.js to notify that pin status is updated
+        chrome.runtime.sendMessage({ action: 'updatePopup' });
+    });
 }
