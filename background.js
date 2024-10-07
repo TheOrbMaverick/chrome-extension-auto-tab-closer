@@ -1,7 +1,7 @@
 // Store for settings like inactivity time limit and maximum open tabs
 let userSettings = {
-    inactivityLimit: 2700000,  // default to 45 minutes
-    maxTabs: 4               // default to 4 tabs
+    inactivityLimit: 60000,  // default to 45 minutes
+    maxTabs: 2              // default to 4 tabs
 };
 
 // Store the last active timestamp and pinned status
@@ -23,11 +23,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // When the extension is installed or settings are updated
 chrome.runtime.onInstalled.addListener(() => {
     // Set up the alarm to check inactive tabs every minute.
-    chrome.alarms.create('inactiveTabs', { periodInMinutes: 0.2 });
+    chrome.alarms.create('inactiveTabs', { periodInMinutes: (1 / 60) });
     chrome.storage.local.set({ userSettings });
 
     // Set up the cleanup alarm for closed tabs older than 2 days
-    chrome.alarms.create('cleanUpClosedTabs', { periodInMinutes: 1440 }); // 1440 minutes = 24 hours
+    chrome.alarms.create('cleanUpClosedTabs', { periodInMinutes: 720 }); // 720 minutes = 12 hours
 });
 
 // Update tab activity when a tab becomes active
@@ -97,7 +97,7 @@ function checkAndCloseInactiveTabs() {
                             chrome.storage.local.set({ tabTimers });
 
                             // If the timer is close to expiring, show a warning and schedule closure
-                            if (remainingTime <= 10000) { // Show a warning 10 seconds before closing
+                            if (remainingTime <= 20000) { // Show a warning 10 seconds before closing
                                 warnAndCloseTab(tab);
                             }
                         }
@@ -108,15 +108,22 @@ function checkAndCloseInactiveTabs() {
     });
 }
 
-
+// Track which tabs have already received the "closing soon" notification
+let notificationShown = {};
 
 // Function to notify and close a tab
 function warnAndCloseTab(tab) {
-    // Show toast message in Chrome with tab title
-    showNotification(tab.title);
+    // Check if the notification was already shown for this tab
+    if (!notificationShown[tab.id]) {
+        // Show toast message in Chrome with tab title
+        showNotification(tab.title);
+        
+        // Set a flag indicating the notification was shown
+        notificationShown[tab.id] = true;
 
-    // Set a timeout to close the tab after the warning time
-    setTimeout(() => closeTab(tab), 10000); // Assuming WARNING_TIME is 10 seconds
+        // Set a timeout to close the tab after the warning time
+        setTimeout(() => closeTab(tab), 10000); // Assuming WARNING_TIME is 10 seconds
+    }
 }
 
 // Function to display a toast notification with the tab title
@@ -131,6 +138,7 @@ function showNotification(tabTitle) {
     };
 
     chrome.notifications.create(notificationOptions, () => {
+        // Handle notification creation if necessary
     });
 }
 
@@ -152,8 +160,15 @@ function closeTab(tab) {
         });
     });
 
-    // Close the tab
-    chrome.tabs.remove(tab.id);
+    chrome.tabs.remove(tab.id, () => {
+        // Check if there was an error when trying to remove the tab
+        if (chrome.runtime.lastError) {
+            console.warn(`Error closing tab: ${chrome.runtime.lastError.message}`);
+        } else {
+            // Clear the notification flag for this tab
+            delete notificationShown[tab.id];
+        }
+    });
 }
 
 // Clean up old closed tabs (remove tabs older than 2 days)
@@ -163,7 +178,7 @@ function cleanUpOldClosedTabs() {
         const now = Date.now();
         
         // Filter out tabs older than 2 days
-        const filteredTabs = closedTabs.filter(tab => now - tab.timeClosed < (60 * 1000));
+        const filteredTabs = closedTabs.filter(tab => now - tab.timeClosed < (48 * 60 * 60 * 1000));
         
         chrome.storage.local.set({ closedTabs: filteredTabs }, () => {
         });
