@@ -97,8 +97,12 @@ function checkAndCloseInactiveTabs() {
                             chrome.storage.local.set({ tabTimers });
 
                             // If the timer is close to expiring, show a warning and schedule closure
-                            if (remainingTime <= 20000) { // Show a warning 10 seconds before closing
-                                warnAndCloseTab(tab);
+                            if (remainingTime <= 20000 && !notificationShown[tab.id]) { // Show a warning 20 seconds before closing
+                                // Show toast message in Chrome with tab title
+                                showNotification(tab.title);
+                                
+                                // Set a flag indicating the notification was shown
+                                notificationShown[tab.id] = true;
                             }
                         }
                     }
@@ -189,7 +193,6 @@ function cleanUpOldClosedTabs() {
 function togglePin(tabId, isPinned) {
     pinnedTabs[tabId] = isPinned;
     chrome.storage.local.set({ pinnedTabs }, () => {
-        console.log(`Tab ${tabId} pin status updated to: ${isPinned}`);
         // Send a message to popup.js to notify that pin status is updated
         chrome.runtime.sendMessage({ action: 'updatePopup' });
     });
