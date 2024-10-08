@@ -1,7 +1,7 @@
 // Store for settings like inactivity time limit and maximum open tabs
 let userSettings = {
-    inactivityLimit: 60000,  // default to 45 minutes
-    maxTabs: 2              // default to 4 tabs
+    inactivityLimit: 270000,  // default to 45 minutes
+    maxTabs: 4             // default to 4 tabs
 };
 
 // Store the last active timestamp and pinned status
