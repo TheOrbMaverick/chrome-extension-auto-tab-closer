@@ -3,7 +3,7 @@
     "default_locale": "en",
     "name": "Auto Tab Closer",
     "description": "Fixes too many open tabs! Pin the tabs you want to keep and close long inactive tabs while saving the links for later.",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "permissions": [
         "tabs", 
         "storage", 
